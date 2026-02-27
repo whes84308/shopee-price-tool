@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>蝦皮反推售價｜毛利&損益小工具</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111b2e;
+      --card2:#0f1729;
+      --text:#e7eefc;
+      --muted:#a9b7d6;
+      --line:rgba(255,255,255,.10);
+      --good:#5eead4;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --btn:#1f2a44;
+      --btn2:#1f3a5f;
+      --accent:#60a5fa;
+      --radius:16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-synthesis-weight:none;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% 0%, rgba(96,165,250,.18), transparent 60%),
+                  radial-gradient(900px 500px at 95% 10%, rgba(94,234,212,.14), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    header{
+      padding:22px 16px 10px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .title{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+      line-height:1.35;
+    }
+    .subtitle{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:12px 16px 28px;
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:14px;
+    }
+    @media (max-width: 900px){
+      .wrap{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), transparent 38%),
+                  rgba(17,27,46,.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .card .hd h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .card .bd{ padding:14px; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 520px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin:0 0 6px;
+    }
+    .row{
+      background: rgba(15,23,41,.65);
+      border:1px solid var(--line);
+      border-radius: 12px;
+      padding:10px;
+    }
+    .inp{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    input, select{
+      width:100%;
+      padding:10px 10px;
+      border-radius: 10px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(11,18,32,.75);
+      color: var(--text);
+      font-size:14px;
+      outline:none;
+    }
+    input:focus, select:focus{
+      border-color: rgba(96,165,250,.6);
+      box-shadow: 0 0 0 3px rgba(96,165,250,.15);
+    }
+    .unit{
+      font-size:12px;
+      color:var(--muted);
+      padding:0 6px;
+      white-space:nowrap;
+    }
+
+    .toggles{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .toggle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 10px;
+      border-radius: 12px;
+      border:1px solid var(--line);
+      background: rgba(15,23,41,.55);
+      user-select:none;
+      cursor:pointer;
+      font-size:13px;
+      color: var(--text);
+    }
+    .toggle input{ width:auto; margin:0; }
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+      margin-top:10px;
+    }
+
+    .btns{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    button{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), transparent 45%), var(--btn);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      font-size:13px;
+    }
+    button:hover{ background: linear-gradient(180deg, rgba(255,255,255,.10), transparent 45%), var(--btn2); }
+    button.primary{
+      border-color: rgba(96,165,250,.35);
+      background: linear-gradient(180deg, rgba(96,165,250,.25), transparent 55%), rgba(31,58,95,.7);
+    }
+    button.danger{
+      border-color: rgba(251,113,133,.35);
+      background: linear-gradient(180deg, rgba(251,113,133,.18), transparent 55%), rgba(31,42,68,.7);
+    }
+
+    .kpis{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 520px){
+      .kpis{ grid-template-columns: 1fr; }
+    }
+    .kpi{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(15,23,41,.60);
+      padding:12px;
+    }
+    .kpi .t{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:6px;
+    }
+    .kpi .v{
+      font-family: var(--mono);
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .kpi .s{
+      margin-top:6px;
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.4;
+    }
+    .pill{
+      display:inline-flex;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      gap:6px;
+      align-items:center;
+      white-space:nowrap;
+    }
+    .pill.good{ color: var(--good); border-color: rgba(94,234,212,.25); }
+    .pill.bad{ color: var(--bad); border-color: rgba(251,113,133,.25); }
+    .pill.warn{ color: var(--warn); border-color: rgba(251,191,36,.25); }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+      overflow:hidden;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(15,23,41,.55);
+    }
+    td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line);
+      vertical-align:top;
+    }
+    tr:last-child td{ border-bottom:none; }
+    td:first-child{ color:var(--muted); width:46%; }
+    td:last-child{ text-align:right; font-family:var(--mono); }
+
+    .small{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .footer{
+      margin-top:10px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .mono{ font-family:var(--mono); }
+    .note{
+      border:1px dashed rgba(255,255,255,.18);
+      background: rgba(15,23,41,.35);
+      border-radius: 14px;
+      padding:10px 12px;
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.55;
+    }
+    .err{
+      display:none;
+      margin-top:10px;
+      border:1px solid rgba(251,113,133,.35);
+      background: rgba(251,113,133,.08);
+      color: #fecdd3;
+      border-radius: 14px;
+      padding:10px 12px;
+      font-size:12px;
+      line-height:1.5;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <div>
+        <h1>蝦皮反推售價｜毛利 & 損益小工具（RWD）</h1>
+        <div class="subtitle">輸入目標毛利率 + 成本（固定 / %），自動反推建議售價並輸出摘要。會記住上次輸入（本機 localStorage）。</div>
+      </div>
+      <div class="btns">
+        <button class="primary" id="btnCopy">複製摘要</button>
+        <button id="btnCSV">匯出 CSV</button>
+        <button class="danger" id="btnReset">一鍵重置</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- LEFT: Inputs -->
+    <section class="card">
+      <div class="hd">
+        <h2>輸入區</h2>
+        <span class="pill" id="modePill">模式：—</span>
+      </div>
+      <div class="bd">
+        <div class="toggles">
+          <label class="toggle"><input type="checkbox" id="toggleTax" /> 含稅售價（預設稅率 5%）</label>
+          <label class="toggle"><input type="checkbox" id="toggleShip" checked /> 售價需吸收運費（含運）</label>
+        </div>
+        <div class="grid" style="margin-top:10px;">
+          <div class="row">
+            <label>進貨成本（必填）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="cogs" min="0" step="0.01" placeholder="例如 180" />
+              <span class="unit">NT$</span>
+            </div>
+          </div>
+          <div class="row">
+            <label>目標毛利率（必填）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="targetMargin" min="0" max="99" step="0.01" placeholder="例如 35" />
+              <span class="unit">%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top:10px;">
+          <div class="row">
+            <label>稅率（可調）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="taxRate" min="0" max="30" step="0.01" value="5" />
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="row">
+            <label>運費成本（固定）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="shipCost" min="0" step="0.01" value="60" />
+              <span class="unit">NT$</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:10px;">
+          <b>說明：</b><br/>
+          • 「含運」= 你希望商品售價本身就能吸收運費成本（常見免運/補貼情境）。<br/>
+          • 若不勾「含運」= 視為運費不影響商品毛利（例如買家另付運費或你不把運費算進商品定價）。<br/>
+          • 所有「依售價%」的費用都會正確進入反推公式，不會用錯簡化法。
+        </div>
+
+        <div style="margin-top:14px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <h3 style="margin:0; font-size:13px; color:var(--text); letter-spacing:.2px;">蝦皮 & 經營成本</h3>
+          <span class="small">可輸入 % 或固定金額（兩種可同時存在）</span>
+        </div>
+
+        <div class="grid" style="margin-top:10px;">
+          <div class="row">
+            <label>平台成交手續費（%）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="feePlatformPct" min="0" max="100" step="0.01" value="5.5" />
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="row">
+            <label>金流服務費（%）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="feePaymentPct" min="0" max="100" step="0.01" value="2" />
+              <span class="unit">%</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>免運活動服務費（%）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="feeFSPct" min="0" max="100" step="0.01" value="0" />
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="row">
+            <label>免運活動服務費（固定）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="feeFSFixed" min="0" step="0.01" value="0" />
+              <span class="unit">NT$</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>包材費（固定）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="packCost" min="0" step="0.01" value="8" />
+              <span class="unit">NT$</span>
+            </div>
+          </div>
+          <div class="row">
+            <label>人事/倉儲（每單平均固定）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="opsCost" min="0" step="0.01" value="15" />
+              <span class="unit">NT$</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <label>廣告費（營收%）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="adPct" min="0" max="100" step="0.01" value="0" />
+              <span class="unit">%</span>
+            </div>
+          </div>
+          <div class="row">
+            <label>廣告費（每單平均固定）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="adFixed" min="0" step="0.01" value="0" />
+              <span class="unit">NT$</span>
+            </div>
+          </div>
+
+          <div class="row" style="grid-column: 1 / -1;">
+            <label>其他成本（固定，可備註）</label>
+            <div class="inp">
+              <input type="number" inputmode="decimal" id="otherFixed" min="0" step="0.01" value="0" />
+              <span class="unit">NT$</span>
+            </div>
+            <div class="inp" style="margin-top:8px;">
+              <input type="text" id="otherNote" placeholder="備註：例如 退貨損耗/折扣券補貼/耗材..." />
+            </div>
+          </div>
+        </div>
+
+        <div class="err" id="errBox"></div>
+
+        <div class="footer">
+          <div class="small">儲存：自動（此裝置瀏覽器）</div>
+          <div class="small">計算基礎：<span class="mono">毛利率 = (售價 - 全部成本) / 售價</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Results -->
+    <section class="card">
+      <div class="hd">
+        <h2>結果摘要</h2>
+        <span class="pill" id="statusPill">狀態：—</span>
+      </div>
+      <div class="bd">
+        <div class="kpis">
+          <div class="kpi">
+            <div class="t">建議售價</div>
+            <div class="v" id="outPrice">—</div>
+            <div class="s" id="outPriceSub">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">預估毛利</div>
+            <div class="v" id="outMargin">—</div>
+            <div class="s" id="outMarginSub">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">平台費用（含金流/免運活動/廣告%）</div>
+            <div class="v" id="outPlatformFee">—</div>
+            <div class="s" id="outPlatformFeeSub">—</div>
+          </div>
+          <div class="kpi">
+            <div class="t">物流/免運成本</div>
+            <div class="v" id="outShip">—</div>
+            <div class="s" id="outShipSub">—</div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <table>
+            <tbody>
+              <tr>
+                <td>進貨成本</td>
+                <td id="tCogs">—</td>
+              </tr>
+              <tr>
+                <td>其他固定成本合計（包材/人事倉儲/廣告固定/其他）</td>
+                <td id="tFixed">—</td>
+              </tr>
+              <tr>
+                <td>百分比費用率合計（依售價%）</td>
+                <td id="tRate">—</td>
+              </tr>
+              <tr>
+                <td>平台/金流/免運活動/廣告% 金額</td>
+                <td id="tPctFeeAmt">—</td>
+              </tr>
+              <tr>
+                <td>免運活動固定費（固定）</td>
+                <td id="tFSFixed">—</td>
+              </tr>
+              <tr>
+                <td>物流（運費）成本</td>
+                <td id="tShip">—</td>
+              </tr>
+              <tr>
+                <td><b>總成本</b></td>
+                <td id="tTotalCost"><b>—</b></td>
+              </tr>
+              <tr>
+                <td><b>最終淨利（元 / %）</b></td>
+                <td id="tProfit"><b>—</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note" style="margin-top:12px;" id="copyBlock">
+          <b>可複製摘要：</b><br/>
+          <span id="copyText">—</span>
+        </div>
+
+        <div class="hint">
+          若出現「無法反推」：通常是 <span class="mono">(1 - 百分比費用率合計 - 目標毛利率) ≤ 0</span>，代表你設定的費率 + 目標毛利太高，售價會趨近無限大（或不可能達成）。
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // ---------- Utils ----------
+    const $ = (id) => document.getElementById(id);
+    const fmt = (n) => isFinite(n) ? n.toLocaleString('zh-Hant', {maximumFractionDigits:2}) : '—';
+    const money = (n) => isFinite(n) ? `NT$ ${fmt(n)}` : '—';
+    const pct = (n) => isFinite(n) ? `${fmt(n)}%` : '—';
+    const num = (v) => {
+      const x = parseFloat(v);
+      return isFinite(x) ? x : 0;
+    };
+    const clamp = (x, a, b) => Math.min(Math.max(x, a), b);
+
+    // ---------- State / Persistence ----------
+    const LS_KEY = "shopee_price_reverse_v1";
+    const fields = [
+      "toggleTax","toggleShip","cogs","targetMargin","taxRate","shipCost",
+      "feePlatformPct","feePaymentPct","feeFSPct","feeFSFixed",
+      "packCost","opsCost","adPct","adFixed","otherFixed","otherNote"
+    ];
+
+    function saveState(){
+      const data = {};
+      fields.forEach(k=>{
+        const el = $(k);
+        data[k] = (el.type === "checkbox") ? el.checked : el.value;
+      });
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+    }
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return;
+        const data = JSON.parse(raw);
+        fields.forEach(k=>{
+          if(!(k in data)) return;
+          const el = $(k);
+          if(el.type === "checkbox") el.checked = !!data[k];
+          else el.value = data[k];
+        });
+      }catch(e){}
+    }
+
+    function resetState(){
+      localStorage.removeItem(LS_KEY);
+      // Soft reset to sensible defaults
+      $("toggleTax").checked = false;
+      $("toggleShip").checked = true;
+      $("cogs").value = "";
+      $("targetMargin").value = "";
+      $("taxRate").value = "5";
+      $("shipCost").value = "60";
+      $("feePlatformPct").value = "5.5";
+      $("feePaymentPct").value = "2";
+      $("feeFSPct").value = "0";
+      $("feeFSFixed").value = "0";
+      $("packCost").value = "8";
+      $("opsCost").value = "15";
+      $("adPct").value = "0";
+      $("adFixed").value = "0";
+      $("otherFixed").value = "0";
+      $("otherNote").value = "";
+      calc();
+    }
+
+    // ---------- Core calc ----------
+    function calc(){
+      const errBox = $("errBox");
+      errBox.style.display = "none";
+      errBox.textContent = "";
+
+      // Inputs
+      const cogs = num($("cogs").value);
+      const mTarget = num($("targetMargin").value) / 100;     // target margin on price
+      const taxRate = clamp(num($("taxRate").value) / 100, 0, 0.8);
+      const shipCost = num($("shipCost").value);
+      const includeTax = $("toggleTax").checked;
+      const includeShipInPrice = $("toggleShip").checked;
+
+      // % fees (applied on "交易額基礎" = 我們這裡用「顧客看到的售價」)
+      const rPlatform = num($("feePlatformPct").value)/100;
+      const rPayment  = num($("feePaymentPct").value)/100;
+      const rFS       = num($("feeFSPct").value)/100;
+      const rAd       = num($("adPct").value)/100;
+      const rTotal = rPlatform + rPayment + rFS + rAd;
+
+      // Fixed costs
+      const fsFixed = num($("feeFSFixed").value);
+      const pack = num($("packCost").value);
+      const ops  = num($("opsCost").value);
+      const adFixed = num($("adFixed").value);
+      const otherFixed = num($("otherFixed").value);
+      const otherNote = ($("otherNote").value || "").trim();
+
+      // Validate required
+      if(cogs <= 0 || mTarget <= 0){
+        // show partial status but don't error hard
+      }
+
+      // A = costs not depending on price linearly
+      // Shipping included only if includeShipInPrice is checked
+      const shipIncludedCost = includeShipInPrice ? shipCost : 0;
+
+      const fixedTotal = pack + ops + adFixed + otherFixed;
+      const A = cogs + fixedTotal + fsFixed + shipIncludedCost;
+
+      // Solve price P such that margin mTarget achieved:
+      // P = A / (1 - rTotal - mTarget)
+      const denom = 1 - rTotal - mTarget;
+
+      let P = NaN;
+      if(cogs > 0 && mTarget > 0){
+        if(denom <= 0){
+          errBox.style.display = "block";
+          errBox.textContent =
+            "無法反推售價： (1 - 百分比費用率合計 - 目標毛利率) ≤ 0。請降低目標毛利率或降低各項%費用，否則售價會不可能達成。";
+        }else{
+          P = A / denom;
+        }
+      }
+
+      // If includeTax: P is tax-included price shown to customer
+      // If not includeTax: P is tax-excluded price. We also compute the other view for display.
+      const priceExcl = includeTax ? (P / (1 + taxRate)) : P;
+      const priceIncl = includeTax ? P : (P * (1 + taxRate));
+
+      // Fee base: using customer-facing price (P in current mode)
+      const feeBase = P;
+      const pctFeeAmt = feeBase * rTotal;
+
+      // Total cost
+      const totalCost = A + pctFeeAmt;
+
+      // Profit and margin achieved
+      const profit = (isFinite(P) ? (P - totalCost) : NaN);
+      const marginAchieved = (isFinite(P) ? (profit / P) : NaN);
+
+      // Breakdowns for UI
+      const platformFeeAmt = feeBase * (rPlatform + rPayment + rFS + rAd) + fsFixed;
+
+      // Shipping display
+      const shipShown = shipIncludedCost; // if not included, show pass-through note
+      const shipSub = includeShipInPrice
+        ? "（已納入售價吸收）"
+        : "（未納入售價；視為不影響商品毛利）";
+
+      // Update mode pill
+      $("modePill").textContent = `模式：${includeTax ? "含稅售價" : "未稅售價"} / ${includeShipInPrice ? "含運" : "不含運"}`;
+
+      // Status pill
+      const statusPill = $("statusPill");
+      if(!isFinite(P)){
+        statusPill.className = "pill warn";
+        statusPill.textContent = "狀態：等待完整輸入 / 或參數不合理";
+      }else{
+        const ok = Math.abs(marginAchieved - mTarget) < 0.00001 && profit >= -0.01;
+        statusPill.className = "pill " + (ok ? "good" : "warn");
+        statusPill.textContent = ok ? "狀態：已達目標" : "狀態：已計算";
+      }
+
+      // KPI: Price
+      $("outPrice").textContent = isFinite(P) ? money(includeTax ? priceIncl : priceExcl) : "—";
+      $("outPriceSub").textContent = isFinite(P)
+        ? (includeTax
+            ? `未稅：${money(priceExcl)}（稅率 ${pct(taxRate*100)}）`
+            : `含稅：${money(priceIncl)}（稅率 ${pct(taxRate*100)}）`)
+        : "輸入進貨成本與目標毛利率後會顯示";
+
+      // KPI: Margin
+      $("outMargin").textContent = isFinite(P) ? `${money(profit)} / ${pct(marginAchieved*100)}` : "—";
+      $("outMarginSub").textContent = isFinite(P) ? `目標：${pct(mTarget*100)}` : "—";
+
+      // KPI: Platform fee
+      $("outPlatformFee").textContent = isFinite(P) ? money(platformFeeAmt) : "—";
+      $("outPlatformFeeSub").textContent = `費率合計：${pct(rTotal*100)}（平台/金流/免運%/廣告%） + 免運固定 ${money(fsFixed)}`;
+
+      // KPI: Shipping
+      $("outShip").textContent = isFinite(P) ? money(shipShown) : "—";
+      $("outShipSub").textContent = shipSub;
+
+      // Table
+      $("tCogs").textContent = money(cogs);
+      $("tFixed").textContent = money(fixedTotal);
+      $("tRate").textContent = pct(rTotal*100);
+      $("tPctFeeAmt").textContent = isFinite(P) ? money(pctFeeAmt) : "—";
+      $("tFSFixed").textContent = money(fsFixed);
+      $("tShip").textContent = money(shipIncludedCost) + " " + (includeShipInPrice ? "" : "（不含運模式不計入）");
+      $("tTotalCost").textContent = isFinite(P) ? money(totalCost) : "—";
+      $("tProfit").textContent = isFinite(P) ? `${money(profit)} / ${pct(marginAchieved*100)}` : "—";
+
+      // Copy text
+      const lines = [];
+      lines.push(`【蝦皮反推售價摘要】`);
+      lines.push(`模式：${includeTax ? "含稅售價" : "未稅售價"} / ${includeShipInPrice ? "含運" : "不含運"}`);
+      if(isFinite(P)){
+        lines.push(`建議售價：${money(includeTax ? priceIncl : priceExcl)}（${includeTax ? "未稅" : "含稅"}：${money(includeTax ? priceExcl : priceIncl)}）`);
+        lines.push(`目標毛利率：${pct(mTarget*100)}；實際：${pct(marginAchieved*100)}`);
+        lines.push(`預估淨利：${money(profit)}`);
+        lines.push(`平台/金流/免運%/廣告%：${pct(rTotal*100)} → ${money(pctFeeAmt)}`);
+        lines.push(`免運固定費：${money(fsFixed)}`);
+        lines.push(`進貨成本：${money(cogs)}`);
+        lines.push(`其他固定成本：${money(fixedTotal)}（包材${money(pack)} / 人事倉儲${money(ops)} / 廣告固定${money(adFixed)} / 其他${money(otherFixed)}）`);
+        lines.push(`運費成本：${money(shipCost)}（${includeShipInPrice ? "已吸收" : "不含運模式不計入商品定價"}）`);
+        lines.push(`總成本：${money(totalCost)}`);
+        if(otherNote) lines.push(`備註：${otherNote}`);
+      }else{
+        lines.push(`尚未完成計算：請確認進貨成本、目標毛利率，以及費率設定是否合理。`);
+      }
+      $("copyText").textContent = lines.join("\n");
+
+      // Save state
+      saveState();
+    }
+
+    // ---------- CSV export ----------
+    function exportCSV(){
+      // Use current output snapshot
+      const now = new Date();
+      const iso = now.toISOString();
+
+      const includeTax = $("toggleTax").checked;
+      const includeShipInPrice = $("toggleShip").checked;
+
+      const data = {
+        timestamp: iso,
+        mode: `${includeTax ? "含稅" : "未稅"}|${includeShipInPrice ? "含運" : "不含運"}`,
+        cogs: $("cogs").value || "",
+        target_margin_pct: $("targetMargin").value || "",
+        tax_rate_pct: $("taxRate").value || "",
+        ship_cost: $("shipCost").value || "",
+        platform_pct: $("feePlatformPct").value || "",
+        payment_pct: $("feePaymentPct").value || "",
+        freeship_pct: $("feeFSPct").value || "",
+        freeship_fixed: $("feeFSFixed").value || "",
+        pack: $("packCost").value || "",
+        ops: $("opsCost").value || "",
+        ad_pct: $("adPct").value || "",
+        ad_fixed: $("adFixed").value || "",
+        other_fixed: $("otherFixed").value || "",
+        other_note: ($("otherNote").value || "").replaceAll('"','""'),
+        out_price: $("outPrice").textContent,
+        out_profit_margin: $("outMargin").textContent,
+        out_platform_fee: $("outPlatformFee").textContent,
+        out_ship: $("outShip").textContent,
+        total_cost: $("tTotalCost").textContent
+      };
+
+      const headers = Object.keys(data);
+      const row = headers.map(h=>{
+        const v = (data[h] ?? "").toString();
+        return `"${v.replaceAll('"','""')}"`;
+      }).join(",");
+
+      const csv = headers.join(",") + "\n" + row + "\n";
+      const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "shopee_price_reverse.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // ---------- Copy ----------
+    async function copySummary(){
+      const text = $("copyText").textContent || "";
+      try{
+        await navigator.clipboard.writeText(text);
+        const pill = $("statusPill");
+        const old = pill.textContent;
+        pill.className = "pill good";
+        pill.textContent = "狀態：已複製到剪貼簿";
+        setTimeout(()=>{ pill.textContent = old; pill.className = pill.className.includes("good") ? pill.className : "pill"; calc(); }, 900);
+      }catch(e){
+        alert("複製失敗：你的瀏覽器可能不允許 clipboard。你可以手動選取摘要文字複製。");
+      }
+    }
+
+    // ---------- Events ----------
+    function bind(){
+      fields.forEach(k=>{
+        const el = $(k);
+        el.addEventListener("input", calc);
+        el.addEventListener("change", calc);
+      });
+      $("btnReset").addEventListener("click", resetState);
+      $("btnCSV").addEventListener("click", exportCSV);
+      $("btnCopy").addEventListener("click", copySummary);
+    }
+
+    // Init
+    loadState();
+    bind();
+    calc();
+  </script>
+</body>
+</html>
